@@ -1,65 +1,34 @@
-<!doctype html>
-<html lang="id">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>AI Chat</title>
-  <style>
-    body{font-family:system-ui,Arial;margin:20px;max-width:720px}
-    #chat{border:1px solid #ddd;border-radius:10px;padding:12px;height:55vh;overflow:auto}
-    .msg{margin:10px 0}
-    .me{font-weight:600}
-    .ai{font-weight:600}
-    form{display:flex;gap:8px;margin-top:12px}
-    input{flex:1;padding:10px;border-radius:10px;border:1px solid #ddd}
-    button{padding:10px 14px;border-radius:10px;border:1px solid #ddd;background:#fff}
-  </style>
 </head>
 <body>
-  <h2>AI Chat</h2>
+  <h1>AI Chat 🤖</h1>
+
   <div id="chat"></div>
 
-  <form id="form">
-    <input id="input" placeholder="Ketik pesan..." autocomplete="off" />
-    <button type="submit">Kirim</button>
-  </form>
+  <input id="input" placeholder="Tulis pesan..." />
+  <button onclick="send()">Kirim</button>
 
   <script>
-    const chatEl = document.getElementById("chat");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
-
-    function add(role, text){
-      const div = document.createElement("div");
-      div.className = "msg";
-      div.innerHTML = `<span class="${role === "user" ? "me" : "ai"}">${role === "user" ? "Kamu" : "AI"}:</span> ${text}`;
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const message = input.value.trim();
-      if (!message) return;
+    async function send() {
+      const input = document.getElementById("input");
+      const chat = document.getElementById("chat");
+      const text = input.value;
       input.value = "";
-      add("user", message);
-      add("assistant", "…");
 
-      try{
-        const res = await fetch("/.netlify/functions/chat", {
-          method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: JSON.stringify({ message })
-        });
-        const data = await res.json();
-        // hapus "…" terakhir
-        chatEl.lastChild.remove();
-        add("assistant", (data.reply || "Maaf, tidak ada jawaban."));
-      }catch(err){
-        chatEl.lastChild.remove();
-        add("assistant", "Error koneksi. Coba lagi ya.");
-      }
-    });
+      chat.innerHTML += "<p><b>Kamu:</b> " + text + "</p>";
+
+      const res = await fetch("/.netlify/functions/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text })
+      });
+
+      const data = await res.json();
+      chat.innerHTML += "<p><b>AI:</b> " + data.reply + "</p>";
+    }
   </script>
 </body>
 </html>
