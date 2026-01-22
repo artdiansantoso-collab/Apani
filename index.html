@@ -1,34 +1,26 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>AI Chat</title>
-</head>
-<body>
-  <h1>AI Chat 🤖</h1>
+<script>
+  async function send() {
+    const input = document.getElementById("input");
+    const chat = document.getElementById("chat");
+    const text = input.value.trim();
+    if (!text) return;
 
-  <div id="chat"></div>
+    input.value = "";
+    chat.innerHTML += "<p><b>Kamu:</b> " + text + "</p>";
 
-  <input id="input" placeholder="Tulis pesan..." />
-  <button onclick="send()">Kirim</button>
+    const res = await fetch("/.netlify/functions/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
 
-  <script>
-    async function send() {
-      const input = document.getElementById("input");
-      const chat = document.getElementById("chat");
-      const text = input.value;
-      input.value = "";
+    const data = await res.json().catch(() => ({}));
 
-      chat.innerHTML += "<p><b>Kamu:</b> " + text + "</p>";
-
-      const res = await fetch("/.netlify/functions/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
-
-      const data = await res.json();
-      chat.innerHTML += "<p><b>AI:</b> " + data.reply + "</p>";
+    if (!res.ok || data.error) {
+      chat.innerHTML += "<p><b>Error:</b> " + (data.error || ("HTTP " + res.status)) + "</p>";
+      return;
     }
-  </script>
-</body>
-</html>
+
+    chat.innerHTML += "<p><b>AI:</b> " + data.reply + "</p>";
+  }
+</script>
